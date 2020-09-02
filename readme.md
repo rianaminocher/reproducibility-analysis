@@ -3,15 +3,15 @@ reproducibility-analysis
 
 [![License: CC BY-NC-SA 4.0](https://licensebuttons.net/l/by-nc-sa/4.0/80x15.png)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-The following code was based on the analyses in: 
+This repository contains data and analysis code for:
 
 > Minocher, et al. "Reproducibility of social learning research declines exponentially over 63 years of publication"
 
 This code was written by Riana Minocher and Bret Beheim under Creative Commons License [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). See LICENSE.md for details.
 
-The code was developed on R v3.6.1, and uses the `testthat` package (v2.0.1) from CRAN, which can be installed using the `install.packages` command in R. This code also uses the Stan MCMC engine via the `rstan` package (v2.19.2), which requires a C++ compiler. Installation instructions at https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started. We also use the `rethinking` package (v1.93), installation instructions at http://xcelab.net/rm/software/.
+The code was developed on R v3.6.1. This code uses the Stan MCMC engine via the `rstan` package (v2.19.2), which requires a C++ compiler. Installation instructions are available at https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started. We also use the `rethinking` package (v1.93), installation instructions at http://xcelab.net/rm/software/.
 
-## Running analysis code
+## How to run
 
 To run the primary analyses
 
@@ -20,6 +20,8 @@ To run the primary analyses
 2. Type `source("analysis.r")` and hit enter.
 
 If the required packages are correctly installed, the code will take a few minutes to run and return the output assets to the `output/` folder. The code is designed to run in sequence on the data described by the glossary below.
+
+## About the data
 
 There are two data frames in this analysis. The `pubs_anon.csv` file contains data from part I of the study, on the availability of materials from all sampled publications (n = 560 papers). Each row corresponds to a single publication with the following data columns:
 
@@ -41,7 +43,7 @@ There are two data frames in this analysis. The `pubs_anon.csv` file contains da
 
 ```
 
-The second data frame is `results_anon.csv`, where each row corresponds to a single result (n = 110 results), from a publication in our subsample of Phase II reanalyses, with the following data columns:
+The second data frame is `results_anon.csv`, where each row corresponds to a single result (n = 111 results), from a publication in our subsample of Phase II reanalyses, with the following data columns:
 
 ```
 

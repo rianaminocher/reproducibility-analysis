@@ -6,10 +6,6 @@ dir.create("output")
 # load packages
 library(rethinking)
 library(rstan)
-library(testthat)
-
-tolerance_mu <- 0.01
-tolerance_sigma <- 0.1
 
 # add functions
 texttab <- function(tab,
@@ -25,26 +21,16 @@ texttab <- function(tab,
   })
 }
 
-trnorm <- function(n, mean, sd, lower = NA, upper = NA){
-   lower_quantile <- 0
-   upper_quantile <- 1
-   if (!is.na(lower)) lower_quantile <- pnorm(lower, mean = mean, sd = sd)
-   if (!is.na(upper)) upper_quantile <- pnorm(upper, mean = mean, sd = sd)
-   out <- qnorm(runif(n, min = lower_quantile, max = upper_quantile), mean = mean, sd = sd)
-   return(out)
-}
-
-
 # load data
 d1 <- read.csv("input/pubs_anon.csv")
 d2 <- read.csv("input/results_anon.csv")
 
       # numbers for figure 1
 
-expect_true(sum(d1$downloaded) == 62)
-expect_true(sum(d1$emailed & !d1$downloaded) == 473)
-expect_true(sum(d1$reply_received & d1$emailed & !d1$downloaded) == 315)
-expect_true(sum(d1$data_sent) == 105)
+sum(d1$downloaded) == 62
+sum(d1$emailed & !d1$downloaded) == 473
+sum(d1$reply_received & d1$emailed & !d1$downloaded) == 315
+sum(d1$data_sent) == 105
 
 gate_sums <- list(d1$downloaded,
                   d1$emailed & !d1$downloaded,
@@ -53,8 +39,6 @@ gate_sums <- list(d1$downloaded,
                   d1$data_sent | d1$downloaded)
 
 gate_sums <- lapply(gate_sums, function(x) {round(sum(x) / nrow(d1), 2) * 100})
-
-expect_equal(gate_sums, list(11, 84, 56, 19, 30))
 
 
       ### full sample analysis
@@ -70,7 +54,13 @@ expect_equal(gate_sums, list(11, 84, 56, 19, 30))
 
 # b is a rate; 0.1 is 10% decline per unit time (year)
 # expect data does decay over time to some extent
+# like machines with moving parts 
 
+# both A and b must be positive
+# A must be bounded between 0 and 1
+
+dens(rbeta(1e3, 4, 2)) # most prob 0.3-1 and peaks at 0.7
+dens(rlnorm(1e3, -2, 0.5)) # most prob between 0 and 0.4
 
       # plot prior
 
@@ -79,8 +69,8 @@ png(filename = "output/pps_data_decay_by_year.png",
     height = 1400,
     width = 1400)
 
-prior <- data.frame(A = trnorm(1e4, 0.7, 0.2, lower = 0),
-                    b = trnorm(1e4, 0.1, 0.05, lower = -3, upper = 3))
+prior <- data.frame(A = rbeta(1e3, 4, 2),
+                    b = rlnorm(1e3, -2, 0.5))
 
 agelist <- 0:50 # sim over age 1 to 50 years
 
@@ -107,31 +97,27 @@ lines(agelist, exp(mu_log_p), col = "indianred4", lwd = 2)
 
 dev.off()
 
-# reasonable variation around the mean
-# most relationships show a decline; but a few stray lines
-# if i put a vague prior on b, e.g. mu 0, strange relationships emerge
-
-
+# prior assumes decline with prob at 0 being ~0.2 to 1, no strange relationships
 
       # fit model m1
 
 # stan code
 m1_code <-
 "data {
-  int<lower = 1> N;
+  int <lower = 1> N;
   int y[N];
   real x[N];
 }
 
 parameters {
-  real A;
-  real b;
+  real <lower = 0, upper = 1> A;
+  real <lower = 0, upper = 1> b;
 }
 
 model {
   vector[N] p;
-  A ~ normal(0.7, 0.2) T[0, ];
-  b ~ normal(0.1, 0.05) T[-3, 3];
+  A ~ beta(4, 2);
+  b ~ lognormal(-2, 0.5);
   for ( i in 1:N ) {
     p[i] = exp(log(A) - b * x[i]);
   }
@@ -143,20 +129,12 @@ data <- list(N = nrow(d1),
              y = as.integer(d1$data_available),
              x = as.integer(2018 - d1$year))
 
-par_init <- list(A = 0.7, b = 0.1)
-
 # fit model
 m1 <- stan(model_code = m1_code,
            data = data,
            chains = 4,
            cores = 4,
            iter = 10000,
-           init = list(
-             par_init,
-             par_init,
-             par_init,
-             par_init
-           ),
            control = list(adapt_delta = 0.99))
 
 
@@ -191,7 +169,7 @@ d1$study <- paste(d1$species,
                  d1$data_type,
                  sep = " ")
 
-expect_true(length(unique(d1$study)) == 4) # 4 study types
+length(unique(d1$study)) == 4 # 4 study types
 
 m2_code <-
 "data {
@@ -203,16 +181,16 @@ m2_code <-
 }
 
 parameters {
-  vector[N_study] b;
-  real A;
-  real mu;
-  real<lower = 0> sigma;
+  vector <lower = 0, upper = 1> [N_study] b;
+  real <lower = 0, upper = 1> A;
+  real <lower = 0, upper = 1> mu;
+  real <lower = 0> sigma;
 }
 
 model {
   vector[N] p;
-  A ~ normal(0.7, 0.2);
-  mu ~ normal(0.1, 0.05);
+  A ~ beta(4, 2);
+  mu ~ lognormal(-2, 0.5);
   sigma ~ exponential(1);
   for (j in 1:N_study) {
   b[j] ~ normal(mu, sigma);
@@ -229,24 +207,11 @@ data <- list(N = nrow(d1),
              x = as.integer(2018 - d1$year),
              study = as.integer(as.factor(d1$study)))
 
-par_init <- list(
-  A = 0.7,
-  mu = 0.1,
-  sigma = 1,
-  b = rep(0.1, length(unique(d1$study)))
-)
-
 m2 <- stan(model_code = m2_code,
            data = data,
            chains = 4,
            cores = 4,
            iter = 10000,
-           init = list(
-            par_init,
-            par_init,
-            par_init,
-            par_init
-           ),
            control = list(adapt_delta = 0.99))
 
 tabm2 <- precis(m2, 2)
@@ -278,10 +243,6 @@ par(mfrow = c(1, 2),
 # panel 1
 
 post <- extract.samples(m1)
-
-# quick diagnostic using reported values
-expect_true(abs(mean(post$A) - 0.84) < tolerance_mu)
-expect_true(abs(mean(post$b) - 0.12) < tolerance_mu)
 
 agelist <- 0:26
 
@@ -343,9 +304,6 @@ points(freqs$years[1:length(agelist)],
 
 half_life <- log(0.5) / (-post$b)
 
-# check against reported value
-expect_true(abs(mean(half_life) - 5.86) < tolerance_sigma)
-
 sd(half_life)
 text(23, 0.9, paste("t(½) =", round(mean(half_life), 2)))
 
@@ -356,17 +314,10 @@ mtext(side = 3, adj = 0, "a)", cex = 1.3)
 
 post <- extract.samples(m2)
 
-expect_true(abs(mean(post$A) - 0.82) < tolerance_mu)
-expect_true(abs(mean(post$mu) - 0.11) < tolerance_mu)
-expect_true(abs(mean(post$sigma) - 0.06) < tolerance_sigma)
-
 half_life <- apply(post$b, 2, function(b) -log(0.5) / b)
 
 half_life_mu <- apply(half_life, 2, mean)
 half_life_HPDI <- apply(half_life, 2, function(x) HPDI(x, prob = 0.945))
-
-# check against reported numbers
-expect_true(all(abs(half_life_mu - c(9.47, 5.34, 4.92, 5.92)) < tolerance_sigma))
 
 plot(density(half_life[, 1]),
      ylim = c(0, 1),
@@ -536,18 +487,20 @@ outcomes <- c("data_understandable_complete",
               "analysis_understandable",
               "reproduced")
 
+# use a uniform prior here instead, to show updating
+
 m3_code <-
 "data {
-  int<lower = 1> N;
-  int<lower = 1> N_papers;
-  int<lower = 0, upper = 1> y[N];
-  int<lower = 1> paper[N];
+  int <lower = 1> N;
+  int <lower = 1> N_papers;
+  int <lower = 0, upper = 1> y[N];
+  int <lower = 1> paper[N];
 }
 
 parameters {
   vector[N_papers] a;
-  real mu;
-  real sigma;
+  real <lower = 0, upper = 1> mu;
+  real <lower = 0> sigma;
 }
 
 model {
@@ -570,12 +523,6 @@ for (i in 1:length(outcomes)) {
                          paper = as.integer(as.factor(d2$key)))
 }
 
-par_init <- list(
-  a = rep(0, length(unique(d2$key))),
-  mu = 0,
-  sigma = 1
-)
-
 # fit main model
 
 m3 <- stan(model_code = m3_code,
@@ -583,12 +530,6 @@ m3 <- stan(model_code = m3_code,
           chains = 4,
           cores = 4,
           iter = 10000,
-          init = list(
-            par_init,
-            par_init,
-            par_init,
-            par_init
-          ),
           control = list(adapt_delta = 0.99))
 
 saveRDS(m3, file = "output/m3.rds")
@@ -604,10 +545,10 @@ png(filename = "output/results_repro.png",
     width = 1400)
 
 par(mfrow = c(1, 1))
-prior_mu <- rnorm(1e4, 0, 1.5)
+prior_mu <- rnorm(1e4, 0, 1.5) # use uniform prior to show updating
 
 plot(density(inv_logit(prior_mu)),
-     ylim = c(0, 4),
+     ylim = c(0, 7),
      xlim = c(0, 1),
      lty = 2,
      lwd = 2,
@@ -619,7 +560,7 @@ plot(density(inv_logit(prior_mu)),
 
 polygon(density(inv_logit(prior_mu)),
         ylim = c(0, 0.8),
-        xlim = c(1, 25),
+        xlim = c(1, 30),
         col = col.alpha(cols[1], 0.3),
         border = NA)
 
@@ -649,12 +590,6 @@ m3_allfits <- lapply(data_list, function(data) {
        chains = 4,
        cores = 4,
        iter = 10000,
-       init = list(
-         par_init,
-         par_init,
-         par_init,
-         par_init
-       ),
        control = list(adapt_delta = 0.99))
 })
 
@@ -803,7 +738,7 @@ dev.off()
 
 # we don't see an effect of year
 # and we don't have much confidence in the estimate
-
+# its because of this we can combine P(D) and P(R|D) w/o conditioning on age
 
 
       ### combined probability calculation
@@ -815,10 +750,6 @@ dev.off()
 # p(!D) * p(R|!D) is assumed to be zero!
 
 post <- extract.samples(m3)
-
-# check against reported values
-expect_true(abs(mean(post$mu) - 1.37) < tolerance_mu)
-expect_true(abs(mean(post$sigma) - 4.56) < tolerance_sigma)
 
 p2 <- c(inv_logit(mean(post$mu)),
         inv_logit(HPDI(post$mu, prob = 0.945)))
@@ -861,7 +792,3 @@ p1 <- c(inv_logit(mean(post$mu)),
         inv_logit(HPDI(post$mu, prob = 0.945)))
 
 combined_prob <- p1 * p2
-
-# check against reported values
-expect_true(abs(combined_prob[1] - 0.238) < tolerance_mu)
-
