@@ -23,7 +23,9 @@ To fit the model and process the output
 
 If the required packages are correctly installed, the code will take a few minutes to run and create the manuscript figures and tables in the `output/` folder. 
 
-The script `pps.R` is a prior predictive simulation, to verify reasonable behaviour of model priors. The `model.stan` file contains the model code, and is called by the `analysis.R` script.
+The `model.stan` file contains the model code, and is called by the `analysis.R` script.
+
+The folder `support` contains two additional scripts, which are supplementary to, but not part of the analysis. The script `pps.R` is a prior predictive simulation, to verify reasonable behaviour of model priors. The script `sample.R` contains information on our justification of the sample size for the subset. 
 
 ## About the data
 
