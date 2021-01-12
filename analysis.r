@@ -4,6 +4,8 @@ library(xtable)
 
 d <- read.csv("input/anon_database.csv")
 
+
+
       # prep data
 
 n <- nrow(d)
@@ -19,6 +21,8 @@ n_results <- d[index_sub, ]$n_results
 x <- d[index_sub, c("n_results", "data_complete", "analysis_clear", "reproduced")]
 x <- t(x)
 x <- as.matrix(x)
+
+
 
       # fit model
 
@@ -44,7 +48,11 @@ fit <- stan(file = "model.stan",
 # p corresponds to p1 in text
 # q1, q2, q3 correspond to p2, p3, p4 in text!
 
+# expect some divergent transitions, but this is not a problem, as the chains converge well.
+
 post <- extract.samples(fit)
+
+
 
       # make plots
 
@@ -63,6 +71,7 @@ par(mar = c(5, 5, 4, 0))
 par(xpd = FALSE)
 
 age <- 0:63
+# compute p across all ages
 p <- sapply(age, function(age) apply(post$A, 1, mean) * exp(-(apply(post$b, 1, mean)) * age))
 
 plot(age[1:26], 
@@ -71,7 +80,7 @@ plot(age[1:26],
      lwd = 2,
      xlim = c(0, 25), 
      ylim = c(0, 1), 
-     ylab = expression("p"[1]), 
+     ylab = expression("probability of data recovery p"[1]), 
      xlab = "years since publication", 
      col = cols[5], 
      cex.lab = 2.5, 
@@ -96,17 +105,20 @@ lines(age[1:26],
 # add observed data
 
 obs <- data.frame(p = tapply(d$data_available, d$year, mean))
+
+# scale points by total observations for each year
+sizes <- tapply(d$data_available, d$year, length)
 points(2018 - as.numeric(rownames(obs)),
        obs$p, 
-       cex = 2)
+       cex = sizes/8)
 
 par(xpd = TRUE)
-text("A", x = 0, y = 1.1, cex = 3)
+text("A", x = 0, y = 1.1, cex = 3.5)
 par(xpd = FALSE)
 
 # Panel B: 
 
-# marginalising over the observed data values
+# marginalising over the observed age distribution
 
 par(mar = c(5, 2, 4, 20))
 
@@ -162,7 +174,7 @@ legend(x = 1.1,
        cex = 2,
        fill = sapply(cols[c(5, 4, 3, 2, 1)], function(col) col.alpha(col, 0.8)))
 
-text("B", x = 0, y = 70, cex = 3)
+text("B", x = 0, y = 70, cex = 3.5)
 par(xpd = FALSE)
 
 # Panel C:
@@ -210,40 +222,89 @@ text(x = 18, y = 1.5, "]", cex = 4.5, family = 'Helvetica Neue UltraLight')
 text(x = 15, y = 3.5, "]", cex = 4.5, family = 'Helvetica Neue UltraLight')
 
 par(xpd = TRUE)
-text("C", x = 0, y = 6, cex = 3)
+text("C", x = 0, y = 6, cex = 3.5)
 
 dev.off()
 
-# half lives
-mean(-log(0.5) / apply(post$b, 1, mean))
-HPDI(-log(0.5) / apply(post$b, 1, mean))
-apply(-log(0.5) / post$b, 2, mean)
-apply(-log(0.5) / post$b, 2, HPDI)
+# print model results just p's
 
-# ps estimates
+ps[[5]] <- apply(ps[[5]], 1, mean) # average across samples 
+s<- precis(ps[5:1], prob = 0.89)[1:4]
+rownames(s) <- c("$p_{1}$", "$p_{2}$", "$p_{3}$", "$p_{4}$", "$p(r)$")
 
-lapply(ps, mean)
-lapply(ps, HPDI)
-
-# print model results main
-
-ps[[5]] <- apply(ps[[5]], 1, mean)
-summary <- precis(ps[5:1])[1:4]
-rownames(summary) <- c("$p_{1}$", "$p_{2}$", "$p_{3}$", "$p_{4}$", "$p(r)$")
-print(xtable(summary), file = "output/tab1.txt", only.contents = TRUE, sanitize.rownames.function = function(x) {x})
+print(xtable(s), 
+      file = "output/tab1.txt", 
+      only.contents = TRUE, 
+      sanitize.rownames.function = function(x) {x})
         
-# print model results full for supplement
+# print model results full
 
-s <- summary(fit, pars = c("A", "b", "a", "paper_sigma", "rho", "alpha", "delta"))
-s$summary <- s$summary[, c("mean", "sd", "2.5%", "97.5%", "n_eff", "Rhat")]
-rownames(s$summary) <- c("$\\alpha_{1}$", "$\\alpha_{2}$", "$\\alpha_{3}$", "$\\alpha_{4}$",
-                          "$\\lambda_{1}$", "$\\lambda_{2}$", "$\\lambda_{3}$", "$\\lambda_{4}$",
-                          "$\\phi_{2}$", "$\\phi_{3}$", "$\\phi_{4}$",
-                         "$\\psi_{2}$", "$\\psi_{3}$", "$\\psi_{4}$",
-                         "$\\rho_{2}$", "$\\rho_{3}$", "$\\rho_{4}$",
-                         "$\\upsilon_{2}$", "$\\upsilon_{3}$", "$\\upsilon_{4}$", 
-                         "$\\delta_{2}$", "$\\delta_{3}$", "$\\delta_{4}$")
-print(xtable(s$summary), file = "output/tabfull.txt", only.contents = TRUE, sanitize.rownames.function = function(x) {x})
+s <- precis(fit, pars = c("A", "b", "a", "paper_sigma", "rho", "alpha", "delta"), 2, prob = 0.89)
+rownames(s) <- c("$\\alpha_{1}$", "$\\alpha_{2}$", "$\\alpha_{3}$", "$\\alpha_{4}$",
+                 "$\\lambda_{1}$", "$\\lambda_{2}$", "$\\lambda_{3}$", "$\\lambda_{4}$",
+                 "$\\phi_{2}$", "$\\phi_{3}$", "$\\phi_{4}$",
+                 "$\\psi_{2}$", "$\\psi_{3}$", "$\\psi_{4}$",
+                 "$\\rho_{2}$", "$\\rho_{3}$", "$\\rho_{4}$",
+                 "$\\upsilon_{2}$", "$\\upsilon_{3}$", "$\\upsilon_{4}$", 
+                 "$\\delta_{2}$", "$\\delta_{3}$", "$\\delta_{4}$")
+s <- as.data.frame(s)
+colnames(s) <- c("mean", "sd", "lower", "upper", "n_eff", "Rhat")
+
+print(xtable(s), 
+      file = "output/tabfull.txt", 
+      only.contents = TRUE,
+      sanitize.rownames.function = function(x) {x})
+
+# decomposing r by age
+
+age <- 0:63
+p <- sapply(age, function(age) apply(post$A, 1, mean) * exp(-(apply(post$b, 1, mean)) * age))
+
+q <- array(dim = c(nrow(post$A), 3, 64))
+age <- 1:64
+for(i in 1:3) {
+  q[ , i, ] <- sapply(age, function(age) inv_logit(post$a[, i] 
+                                                   + post$k_age[, i, age]))
+}
+
+r <- p * q[, 1, ] * q[, 2, ] * q[, 3, ]
+
+apply(r, 2, mean)
+apply(r, 2, HPDI)
+
+png("output/supp_decay_age.png", 
+    height = 1800, 
+    width = 2000, 
+    res = 250)
+
+par(mar = c(5, 5, 2, 2))
+
+plot(0:63, 
+     apply(r, 2, mean), 
+     type = "l", 
+     ylim = c(0, 1), 
+     xlim = c(0, 63), 
+     ylab = "overall probability of reproduction p(r)", 
+     xlab = "years since publication", 
+     col = "#000004FF", 
+     lwd = 2, 
+     cex.lab = 2, 
+     cex.axis = 1.5)
+shade(apply(r, 2, HPDI), 
+      0:63, 
+      col = col.alpha("#000004FF", alpha = 0.3))
+lines(0:63,
+      apply(r, 2, HPDI)[1, ],
+      lty = 2, 
+      col = col.alpha("#000004FF", alpha = 0.7), 
+      lwd = 2)
+lines(0:63,
+      apply(r, 2, HPDI)[2, ],
+      lty = 2, 
+      col = col.alpha("#000004FF", alpha = 0.7),
+      lwd = 2)
+
+dev.off()
 
 # k_age caterpillar plot
 
@@ -273,50 +334,62 @@ for(j in 1:3) {
 
 dev.off()
 
-# decomposing r by age
+# supplementary figure including sample sizes
 
-age <- 0:63
-p <- sapply(age, function(age) apply(post$A, 1, mean) * exp(-(apply(post$b, 1, mean)) * age))
-
-q <- array(dim = c(nrow(post$A), 3, 64))
-age <- 1:64
-for(i in 1:3) {
-  q[ , i, ] <- sapply(age, function(age) inv_logit(post$a[, i] 
-                                                   + post$k_age[, i, age]))
-}
-
-r <- p * q[, 1, ] * q[, 2, ] * q[, 3, ]
-
-apply(r, 2, mean)
-apply(r, 2, HPDI)
-
-png("output/supp_decay_age.png", 
+png("output/supp_size.png", 
     height = 1500, 
-    width = 1800, 
+    width = 3000, 
     res = 250)
 
-plot(0:63, 
-     apply(r, 2, mean), 
-     type = "l", 
-     ylim = c(0, 1), 
-     xlim = c(0, 63), 
-     ylab = "p", 
+par(mfrow = c(1, 2), 
+    mar = c(5, 5, 4, 2))
+
+obs <- data.frame(p = tapply(d$key, d$year, length))
+
+plot(2018 - as.numeric(rownames(obs)), 
+     obs$p,
+     ylab = "number of papers", 
      xlab = "years since publication", 
-     col = "#000004FF", 
-     lwd = 2, 
-     cex.lab = 1.5)
-shade(apply(r, 2, HPDI), 
-      age, 
-      col = col.alpha("#000004FF", alpha = 0.3))
-lines(age,
-      apply(r, 2, HPDI)[1, ],
-      lty = 2, 
-      col = col.alpha("#000004FF", alpha = 0.7), 
-      lwd = 2)
-lines(age,
-      apply(r, 2, HPDI)[2, ],
-      lty = 2, 
-      col = col.alpha("#000004FF", alpha = 0.7),
-      lwd = 2)
+     type = "l", 
+     lty = 2, 
+     lwd = 1.5, 
+     cex.lab = 2, 
+     cex.axis = 1.5)
+
+par(xpd = TRUE)
+text(0, 40, "A", cex = 2)
+par(xpd = FALSE)
+
+type_tab <- as.matrix(t(table(d$type, d$year)))
+cols <- c("#440154FF", "#31688EFF", "#35B779FF", "#FDE725FF")
+
+plot(2018 - as.numeric(names(type_tab[, 1])),
+     type_tab[, 1],
+     xlim = c(0, 63),
+     ylim = c(0, 25),
+     ylab = "number of papers",
+     xlab = "years since publication", 
+     type = "l", 
+     col = cols[1],
+     lwd = 1.5,
+     cex.lab = 2, 
+     cex.axis = 1.5)
+
+for (i in 2:4) {
+  lines(2018 - as.numeric(names(type_tab[, i])),
+        type_tab[, i], 
+        col = cols[i], 
+        lwd = 2)
+}
+
+legend <- c("hum exp", "hum obs", "non exp", "non obs")
+legend("topright",
+       fill = cols,
+       legend = legend, 
+       cex = 1.3)
+
+par(xpd = TRUE)
+text(0, 28, "B", cex = 2)
+par(xpd = FALSE)
 
 dev.off()
