@@ -1,0 +1,8 @@
+% latex table generated in R 4.0.3 by xtable 1.8-4 package
+% Fri Mar  5 18:07:48 2021
+ & mean & sd & 5.5\% & 94.5\% & n\_eff & Rhat4 \\ 
+  \hline
+a & 1.72 & 0.96 & 0.27 & 3.28 & 1434.17 & 1.00 \\ 
+  b\_code & -0.10 & 0.90 & -1.53 & 1.35 & 3600.16 & 1.00 \\ 
+  paper\_sigma & 4.73 & 1.28 & 2.98 & 7.00 & 2361.19 & 1.00 \\ 
+   \hline

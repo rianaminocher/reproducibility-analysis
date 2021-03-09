@@ -393,3 +393,42 @@ text(0, 28, "B", cex = 2)
 par(xpd = FALSE)
 
 dev.off()
+
+# save traceplots
+
+png("output/trace_A.png", 
+    res = 250, 
+    height = 1400, 
+    width = 1400)
+
+traceplot(fit, pars = "A")
+
+dev.off()
+
+png("output/trace_A.png", 
+    res = 250, 
+    height = 1400, 
+    width = 1400)
+
+traceplot(fit, pars = "A")
+
+dev.off()
+
+png("output/trace_b.png", 
+    res = 250, 
+    height = 1400, 
+    width = 1400)
+
+traceplot(fit, pars = "b")
+
+dev.off()
+
+png("output/trace_p234.png", 
+    res = 250, 
+    height = 800, 
+    width = 1600)
+
+traceplot(fit, pars = "a")
+
+dev.off()
+

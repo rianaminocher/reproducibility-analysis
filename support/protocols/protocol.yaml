@@ -1,0 +1,106 @@
+
+# this is a template of the data recorded for each publication within our sample
+
+# we used a single .yaml file per publication in our sample
+# we tracked changes to the single file with version control (git)
+# we combined single files into combined csvs to produce final datasets for analysis
+
+# the preliminary info, author table and materials survey sections were filled in by research assistants; 
+# the email table was filled in by a single research assistant who managed all correspondence; 
+# all other sections were filled in by the first author RM
+
+      # preliminary info: (see protocol-instructions/instructions-1.*)
+
+citation_key     : # unique key for each publication; name-year-keyword, e.g. "minocher2019reproducibility"
+scraper_name     : # name of the person recording preliminary info about the publication
+scraper_comments : # any notes/flags to record about preliminary info
+
+doi     : # article doi http://www.doi.org
+title   : # title of the article
+year    : # year of publication
+journal : # journal article is published in
+
+      # author table:
+
+authors: # this section is filled one time for each author in the author list
+- author_number  : # number of author being recorded (1 = first author in list, 2 = second, ...until last author)
+  name           : # author full name as in article
+  email_pdf      : # email if available in article
+  email_current  : # email from brief google search/ search of current database
+  corr_author    : # TRUE/FALSE for whether the author is listed as the corresponding author of the article
+
+  academic_title: # from the google search, any indication if Dr. (for addressing email)
+
+        # materials survey: (see protocol-instructions/instructions-2.*)
+
+digger_name    : # name of the person recording data about materials
+digger_comments: # any notes/flags to record about materials search
+
+supplement_available     : # TRUE/FALSE for whether supplementary material is published with article
+
+materials_statement      : # copied any phrase/statement about the location of materials/data, by searching in article for a list of keywords ("code", "available", "provided", "data", "analysis", "material", "reproduce", "results") and evaluating hits
+materials_statement_cat  : # coding the materials statement, one of:
+# none [no statement found]
+# request [statement mentions request]
+# available [statement implies data/code is available]
+# it's complicated [unclear status, flag for re-evaluation]
+
+materials_link           : # copied any link to external website for the materials, e.g. osf, github
+
+      # features of the study:
+
+materials_available      : # coding the availability of materials, one of:
+# none [no material available]
+# none - request [statement mentions "request"]
+# data [only data available]
+# data and code [both data and code available]
+# data - descriptive no code [data available but study looks descriptive; code probably doesn't exist/isn't necessary]
+
+species      : # study species
+data_type    : # observational or experimental
+data_details : # details/notes about the type of data (how it was collected, sample)
+design       : # if experimental, the type of design
+keywords     : # keywords about the study
+
+      # post-correspondence materials survey:
+
+case_status  : # open/closed to record status of the article in our pipeline
+
+materials_available_after_request: # updated materials_available, after correspondence
+
+data_filetype: # if "available", filetype of data receieved
+code_filetype: # if "available", filetype of code received
+reason_no_material: # reason no material received
+
+      # email table:
+
+emails: # this section is filled for every email sent to serve as a correspondence record
+
+- email_no      : 1 # e.g. sent by us
+  email_sent_on : # date YYYY-MM-DD
+  email_sent_by : # name of correspondent
+  email_sent_to : # name of recipient
+  email_status  : # type of email: freeform, e.g. "request"/"reply"/"reminder"
+  email_comments :
+
+- email_no      : 2 # e.g. sent by an author in our sample
+  email_sent_on : # date YYYY-MM-DD
+  email_sent_by : # name of correspondent
+  email_sent_to : # name of recipient
+
+  data_received : # TRUE/FALSE for whether material was received
+  reason_no_data: # statement copied from email about reason for no data, e.g "I would like to have further information before sending you materials", "The material is no longer available to me", etc. 
+  reason_no_data_cat: # coded statement about reasons for no materials, one of:
+  # none
+  # not easily accessible [e.g handwritten / author in field / with collaborator / storage format / timeframe]
+  # lost
+  # unwilling to share [e.g. no reason, data confidential]
+  # no reply
+  # data in preparation
+  # willing to share - materials not received
+
+  email_status       : # freeform statement about the email type; e.g. materials received / materials received - already online / request / follow-up request / thank you / reminder requested / will get back soon / no materials available 
+  email_comments     : # any further comments about the email
+
+  reminder_requested     : # TRUE/FALSE for whether the author requested a reminder from us
+  reminder_requested_date: # YYYY-MM-DD

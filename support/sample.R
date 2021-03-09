@@ -1,8 +1,5 @@
 library(rethinking)
 
-unlink("output", recursive = TRUE)
-dir.create("output")
-
 # our analysis estimates the average probability of success across all papers
 
 # for a set of n_papers:
@@ -88,9 +85,10 @@ set.seed(19886)
 
 png("output/fig_n40_response.png", 
     height = 1400, 
-    width = 1400,
+    width = 2800,
     res = 250)
 
+par(mfrow = c(1, 2))
 # plot prior
 
 par(mar = c(5, 5, 2, 2))
@@ -138,8 +136,9 @@ for (i in 1:3) {
 axis(3, labels = FALSE, tck = 0.02)
 axis(4, labels = FALSE, tck = 0.02)
 
-dev.off()
-
+par(xpd = TRUE)
+mtext("A", at = 0.0, cex = 1.5)
+par(xpd = FALSE)
 
       # set of "n"s to loop over
 
@@ -160,19 +159,12 @@ mod_list <- lapply(dat_list, function(data) {
 compute_width <- function(mod) {
   
   post <- extract.samples(mod)
-  sd <- sd(inv_logit(post$a))
+  sd <- HPDI(inv_logit(post$a))
   return(sd)
   
 }
 
 sdlist <- lapply(mod_list, compute_width)
-
-png("./output/n_40_HPDI.png", 
-    res = 250, 
-    height = 1400, 
-    width = 1400)
-
-par(mar = c(5, 5, 2, 2))
 
 plot(n_list, 
      sapply(sdlist, diff), 
@@ -184,6 +176,10 @@ plot(n_list,
 abline(v = 40, lty = 2, lwd = 2, col = "red")
 axis(3, labels = FALSE, tck = 0.02)
 axis(4, labels = FALSE, tck = 0.02)
+
+par(xpd = TRUE)
+mtext("B", at = 10, cex = 1.5)
+par(xpd = FALSE)
 
 dev.off()
 

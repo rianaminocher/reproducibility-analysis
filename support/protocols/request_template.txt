@@ -1,0 +1,25 @@
+template after pilot and approval:
+
+Dear >AUTHOR<,
+
+My name is >SENDER< and I am contacting you as part of the Evolutionary Anthropology Reproducibility Study (EARS), based at the Max Planck Institute for Evolutionary Anthropology, Leipzig.
+
+We are assessing the reproducibility of scientific work in evolutionary anthropology, measuring how often published results can be reproduced using their original data, code, and methods. A working pre-registration of our first study is available at https://github.com/rianaminocher/ears <https://github.com/rianaminocher/ears>.
+
+For our first investigation, we are focusing on empirical work in social learning, both observational and experimental. As such, we would like to include your study >TITLE< published in >JOURNAL< in >YEAR<.
+
+We have looked online, but have not been able to find data and analysis code to accompany some of these papers. We would very much appreciate if you could share your data with us for this reproducibility study. If you also have code or scripting used for your analyses, this will help us in our attempt to reproduce your work.
+
+All these materials and correspondences will remain private among members of our project, but we are planning to develop a redacted database from our collected materials and will contact you at a later date for your permission.
+
+If you are unable to share the data and code with us, please let us know why, e.g. data is not readily available, or is lost, or is confidential. We understand that data in such studies can be confidential, and if this is the case, would like to know more about the nature of your ethical obligations. As part of our project, we are working on developing ways that sensitive data could be shared to aid scientific reproducibility, while protecting participants' information.
+
+We would also like to let you know that this is an ongoing process. Because a number of your studies are relevant to our research, we may contact you again for additional information (as more of your work may come to our attention). We hope you understand!
+
+Thank you for your time, and please let us know if you have any questions.
+
+We're all EARS! (We're looking forward to your response).
+
+Sincerely,
+
+>SENDER<

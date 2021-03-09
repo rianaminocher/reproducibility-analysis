@@ -7,7 +7,7 @@ reproducibility-analysis
 
 This repository contains data and code to reproduce results from
 
-> Minocher, et al. "Reproducibility improves exponentially over 63 years of social learning research"
+> Minocher, et al. "Estimating the reproducibility of social learning research published between 1955 and 2018"
 
 This code was written by Riana Minocher under Creative Commons License [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). See LICENSE.md for details.
 
@@ -25,7 +25,21 @@ If the required packages are correctly installed, the code will take a few minut
 
 The `model.stan` file contains the model code, and is called by the `analysis.R` script.
 
-The folder `support` contains two additional scripts, which are supplementary to, but not part of the analysis. The script `pps.R` is a prior predictive simulation, to verify reasonable behaviour of model priors. The script `sample.R` contains information on our justification of the sample size for the subset. 
+## The support folder
+
+The `support` folder contains files that are supplementary to the main analysis.  
+
+The `bib` folder contains a list of our full sample of publications. 
+
+The script `pps.R` contains code to perform the prior predictive simulation, to verify reasonable behaviour of model priors.
+
+The script `robustness-checks.R` performs a series of alternative analyses on the same data, to verify that our analysis choice does not bias our results. This scripts executes the models `robustness-checks-m1.stan`,  `robustness-checks-m2.stan` and  `robustness-checks-code-availability.stan`. 
+
+The script `sample.R` contains information on our justification of the sample size for the subset.
+
+These scripts produce figures and tables which are stored to the `output` folder. 
+
+The `protocols` folder contains information we circulated amongst research team members on coding data, the template protocol for recording data and the data request template. 
 
 ## About the data
 
@@ -46,5 +60,8 @@ The table `anon_database.csv`, within the input folder, contains data on the 560
 # data_complete = number of results for which data was complete, or usable
 # analysis_clear = number of results for which analysis steps were clear or executable
 # reproduced = number of results which were successfully reproduced, i.e. corresponded to published results
+# reproduced = number of results which were successfully reproduced, i.e. corresponded to published results
+# scripted = 1/0 whether the study we evaluated had available code 
+
 
 ```
