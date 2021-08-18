@@ -112,6 +112,14 @@ points(2018 - as.numeric(rownames(obs)),
        obs$p, 
        cex = sizes/8)
 
+legend("topright",
+       legend = c("n = 30", "n = 5"),
+       pch = 1,
+       cex = 1.5,
+       pt.cex = c(30/8, 5/8), 
+       y.intersp = 1.5,
+       bty = "n")
+
 par(xpd = TRUE)
 text("A", x = 0, y = 1.1, cex = 3.5)
 par(xpd = FALSE)
@@ -229,7 +237,7 @@ dev.off()
 # print model results just p's
 
 ps[[5]] <- apply(ps[[5]], 1, mean) # average across samples 
-s<- precis(ps[5:1], prob = 0.89)[1:4]
+s <- precis(ps[5:1], prob = 0.89)[1:4]
 rownames(s) <- c("$p_{1}$", "$p_{2}$", "$p_{3}$", "$p_{4}$", "$p(r)$")
 
 print(xtable(s), 
